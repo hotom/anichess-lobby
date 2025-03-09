@@ -2,9 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../lib/auth';
 import prisma from '@/libs/prismadb';
-import { writeFile, mkdir } from 'fs/promises';
-import { existsSync } from 'fs';
-import path from 'path';
+import { supabase } from '@/libs/supabase';
 
 export async function GET(req: Request) {
   try {
@@ -79,28 +77,42 @@ export async function POST(req: Request) {
         return new NextResponse('File size too large. Maximum size is 5MB.', { status: 400 });
       }
 
-      // Ensure uploads directory exists
-      const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-      if (!existsSync(uploadsDir)) {
-        console.log('Creating uploads directory...');
-        await mkdir(uploadsDir, { recursive: true });
-      }
-
       // Generate unique filename
       const timestamp = Date.now();
-      const randomNum = Math.floor(Math.random() * 10000);
-      const fileExtension = imageFile.name.split('.').pop();
-      const filename = `post_${timestamp}_${randomNum}.${fileExtension}`;
-      const filepath = path.join(uploadsDir, filename);
+      const randomNum = Math.floor(Math.random() * 1E9);
+      const fileExtension = imageFile.name.substring(imageFile.name.lastIndexOf('.')).toLowerCase();
+      const filename = `${session.user.username}-${timestamp}_${randomNum}${fileExtension}`;
 
-      console.log('Saving image file:', filename);
-      // Save the file
+      console.log('Uploading to Supabase:', filename);
+
+      // Upload to Supabase Storage
       const bytes = await imageFile.arrayBuffer();
       const buffer = Buffer.from(bytes);
-      await writeFile(filepath, buffer);
+      
+      const { data, error } = await supabase.storage
+        .from('uploads')
+        .upload(filename, buffer, {
+          contentType: imageFile.type,
+          cacheControl: '3600',
+          upsert: false
+        });
 
-      // Set the image URL
-      imageUrl = `/uploads/${filename}`;
+      if (error) {
+        console.error('Supabase Storage error:', error);
+        return NextResponse.json({ 
+          error: "Failed to upload file",
+          details: error.message 
+        }, { status: 500 });
+      }
+
+      console.log('Upload successful:', data);
+
+      // Get the public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('uploads')
+        .getPublicUrl(filename);
+
+      imageUrl = publicUrl;
       console.log('Image URL set:', imageUrl);
     }
 
