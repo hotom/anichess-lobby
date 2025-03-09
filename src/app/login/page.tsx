@@ -27,7 +27,11 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        toast.error(result.error);
+        if (result.error === 'CredentialsSignin') {
+          toast.error('Invalid username or password');
+        } else {
+          toast.error(result.error);
+        }
       } else {
         router.push('/');
         router.refresh();

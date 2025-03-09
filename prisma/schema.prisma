@@ -11,6 +11,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -26,7 +27,7 @@ model User {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  tweets          Tweet[]
+  posts           Post[]
   likes           Like[]
   comments        Comment[]
   
@@ -37,9 +38,10 @@ model User {
   sessions Session[]
 }
 
-model Tweet {
+model Post {
   id        String   @id @default(cuid())
   body      String
+  image     String?  // Optional image URL
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   userId    String
@@ -48,6 +50,8 @@ model Tweet {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   likes     Like[]
   comments  Comment[]
+
+  @@index([userId])
 }
 
 model Comment {
@@ -56,21 +60,21 @@ model Comment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   userId    String
-  tweetId   String
+  postId    String
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tweet     Tweet    @relation(fields: [tweetId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
 
 model Like {
   id        String   @id @default(cuid())
   userId    String
-  tweetId   String
+  postId    String
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tweet     Tweet    @relation(fields: [tweetId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, tweetId])
+  @@unique([userId, postId])
 }
 
 model Account {
@@ -90,6 +94,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Session {
@@ -98,4 +103,14 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }

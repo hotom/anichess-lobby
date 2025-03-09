@@ -3,11 +3,38 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-rgb: 255, 255, 255;
+  --primary-bg: #1a1a1a;
+  --secondary-bg: #242424;
+  --hover-bg: #2d2d2d;
+  --border-color: #333333;
+  --primary-text: #ffffff;
+  --secondary-text: #a0a0a0;
+  --accent-color: #7fa650;
+  --accent-hover: #8fb55f;
+  --danger-color: #d64045;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
+  @apply bg-[var(--primary-bg)] text-[var(--primary-text)];
+}
+
+/* Common components styling */
+.btn-primary {
+  @apply px-4 py-2 rounded-full font-semibold bg-[var(--accent-color)] text-white hover:bg-[var(--accent-hover)] transition;
+}
+
+.btn-secondary {
+  @apply px-4 py-2 rounded-full font-semibold border border-[var(--border-color)] text-white hover:bg-[var(--hover-bg)] transition;
+}
+
+.btn-danger {
+  @apply px-4 py-2 rounded-full font-semibold border border-[var(--border-color)] text-white hover:bg-[var(--danger-color)] hover:border-[var(--danger-color)] transition;
+}
+
+.input-primary {
+  @apply bg-[var(--secondary-bg)] text-[var(--primary-text)] px-4 py-2 rounded-md border border-[var(--border-color)] focus:outline-none focus:border-[var(--accent-color)] transition;
+}
+
+.card {
+  @apply bg-[var(--secondary-bg)] rounded-xl p-6 border border-[var(--border-color)];
 }

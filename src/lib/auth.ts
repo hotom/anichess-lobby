@@ -1,26 +1,7 @@
-import { type NextAuthOptions, type Session, type User } from "next-auth";
-import { type JWT } from "next-auth/jwt";
+import { type NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 import prisma from "@/libs/prismadb";
-
-declare module "next-auth" {
-  interface Session {
-    user: {
-      id: string;
-      username: string;
-      name: string;
-      email?: string;
-    }
-  }
-  
-  interface User {
-    id: string;
-    username: string;
-    name: string;
-    email?: string | null;
-  }
-}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -54,30 +35,32 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Invalid username or password");
         }
 
-        // Ensure we return a valid User object with required fields
-        const userForAuth: User = {
+        return {
           id: user.id,
           username: user.username,
-          name: user.name || user.username,
-          email: user.email
+          email: user.email,
+          name: user.name || user.username
         };
-
-        return userForAuth;
       }
     })
   ],
   callbacks: {
-    jwt: async ({ token, user }: { token: JWT; user?: User }) => {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.username = user.username;
+        token.email = user.email;
       }
       return token;
     },
-    session: async ({ session, token }: { session: Session; token: JWT }) => {
+    async session({ session, token }) {
       if (token) {
-        session.user.id = token.id as string;
-        session.user.username = token.username as string;
+        session.user = {
+          ...session.user,
+          id: token.id as string,
+          username: token.username as string,
+          email: token.email as string
+        };
       }
       return session;
     }
@@ -92,4 +75,6 @@ export const authOptions: NextAuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === "development"
-}; 
+};
+
+export default authOptions; 

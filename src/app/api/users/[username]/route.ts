@@ -22,7 +22,7 @@ export async function GET(
       return new NextResponse('User not found', { status: 404 });
     }
 
-    const tweets = await prisma.tweet.findMany({
+    const posts = await prisma.post.findMany({
       where: {
         userId: user.id
       },
@@ -34,7 +34,7 @@ export async function GET(
       }
     });
 
-    return NextResponse.json({ user, tweets });
+    return NextResponse.json({ user, posts });
   } catch (error) {
     console.error(error);
     return new NextResponse('Internal Error', { status: 500 });

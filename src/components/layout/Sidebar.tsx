@@ -47,12 +47,14 @@ const Sidebar = () => {
       <div className="flex flex-col items-end">
         <div className="space-y-2 lg:w-[230px]">
           <Link href="/">
-            <div className="p-4 hover:bg-blue-300 hover:bg-opacity-10 cursor-pointer transition">
-              <img 
-                src="/images/anichess.png" 
-                alt="Anichess" 
-                className="h-10 w-auto"
-              />
+            <div className="p-4 hover:bg-[var(--hover-bg)] transition">
+              <div className="w-[160px] flex items-center">
+                <img 
+                  src="/images/anichess.png" 
+                  alt="Anichess" 
+                  className="w-full h-auto object-contain"
+                />
+              </div>
             </div>
           </Link>
           {items.map((item) => (
